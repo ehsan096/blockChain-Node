@@ -6,8 +6,11 @@ function auth(req, res, next) {
   if (!token) return res.status(400).send("Token Not Provided");
   try {
     let user = jwt.verify(token, config.get("jwtPrivateKey"));
-    Users.map((usr) => (usr.id === user.id ? (req.user = usr) : null));
+    console.log(user);
+    req.user = user;
+    // Users.map((usr) => (usr.id === user.id ? (req.user = usr) : null));
   } catch (err) {
+    console.log("Error, ", err);
     return res.status(401).send("Invalid Token");
   }
   next();
