@@ -1,4 +1,6 @@
 var express = require("express");
+
+const { default: axios } = require("axios");
 var router = express.Router();
 
 const auth = require("../../middlewares/auth");
@@ -73,13 +75,15 @@ router.post("/sell", auth, admin, function (req, res, next) {
   ) {
     if (req.body.quantity === 1) {
       if (buy.length != 0) {
-        let x = buy.shift();
+        buy.shift();
         if (BtcPrice < bestSellPrice) {
           SellerBTC = SellerBTC - 1;
           SellerBalance = SellerBalance + BtcPrice;
           UserBTC = UserBTC + 1;
           UserBalance = UserBalance - BtcPrice;
-          return res.send("order is Filled");
+          return res.send(
+            `order is Filled \n Your BTC Balance > ${SellerBTC} \n Buyer Remaining Balance > ${UserBalance}`
+          );
         }
       } else {
         let obj = {
@@ -87,7 +91,9 @@ router.post("/sell", auth, admin, function (req, res, next) {
           quantity: req.body.quantity,
         };
         sell.push(obj);
-        return res.send(obj);
+        return res.send(
+          `Your Order is Pending: \n Order Type: ${req.body.type} && \n Quantity: ${req.body.quantity}`
+        );
       }
     } else {
       return res.status(401).send("Quantity must be 1");
@@ -107,14 +113,16 @@ router.post("/buy", auth, function (req, res, next) {
     UserBalance >= BtcPrice
   ) {
     if (req.body.quantity === 1) {
-      if (sell.length != 0) {
-        let x = sell.shift();
-        if (req.body.price < bestSellPrice) {
+      if (sell.length !== 0) {
+        sell.shift();
+        if (BtcPrice < bestSellPrice) {
           SellerBTC = SellerBTC - 1;
-          SellerBalance = SellerBalance + x.price;
+          SellerBalance = SellerBalance + BtcPrice;
           UserBTC = UserBTC + 1;
-          UserBalance = UserBalance - x.price;
-          return res.send("order is Filled");
+          UserBalance = UserBalance - BtcPrice;
+          return res.send(
+            `order is Filled \n your remaining  Balance is > ${UserBalance} \n Admin BTC Balance is > ${SellerBTC}`
+          );
         }
       } else {
         let obj = {
@@ -122,10 +130,13 @@ router.post("/buy", auth, function (req, res, next) {
           quantity: req.body.quantity,
         };
         buy.push(obj);
-        return res.send(obj);
+
+        return res.send(
+          `Your Order is Pending: \n Order Type: ${req.body.type} && \n Quantity: ${req.body.quantity}`
+        );
       }
     } else {
-      return res.status(401).send("Quantity must be 1");
+      return res.status(401).send("BTC Buyer Quantity must be 1");
     }
   } else {
     return res
@@ -133,5 +144,13 @@ router.post("/buy", auth, function (req, res, next) {
       .send("Price must be 5% less or 5% more than the avg price");
   }
 });
+
+setInterval(async function () {
+  // console.log(await binance.futuresMarkPrice("BTCUSDT"));
+
+  await axios;
+  console.log("Buyer >> ", buy[0], "  Seller > ", sell[0]);
+  //this code runs every second
+}, 3000);
 
 module.exports = router;

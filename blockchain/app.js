@@ -41,7 +41,7 @@ setInterval(async function () {
       console.log("Error >> ", err);
     });
 
-  //this code runs every second
+  //this code runs every 5 second
 }, 5000);
 
 // error handler
